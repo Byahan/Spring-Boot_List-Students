@@ -1,5 +1,6 @@
 package com.example.demo.Repository;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,7 +14,8 @@ public interface StudentRepository extends JpaRepository<StudentEntity, Integer>
 
     Optional<StudentEntity> findByNim(String nim);
 
-    void deleteByNim(String nim);
+    @Query("SELECT s FROM StudentEntity s WHERE s.fullName = :fullName AND s.dob = :dob")
+    Optional<StudentEntity> findByFullNameAndDob(String fullName, LocalDate dob);
 
     @Query("SELECT MAX(s.nim) FROM StudentEntity s")
     String findMaxNim();

@@ -28,15 +28,25 @@ public class StudentService {
     }
 
     public Student addStudent(StudentRequest request) {
+
+        boolean exists = studentRepository
+                .findByFullNameAndDob(request.getFullName(), request.getDob())
+                .isPresent();
+
+        if (exists) {
+            throw new RuntimeException("Data already exists");
+        }
+
         StudentEntity entity = new StudentEntity();
         entity.setNim(generateNIM());
         entity.setFullName(request.getFullName());
         entity.setDob(request.getDob());
         entity.setAddress(request.getAddress());
 
-        return mapToDto(studentRepository.save(entity));
-    }
+        StudentEntity savedEntity = studentRepository.save(entity);
 
+        return mapToDto(savedEntity);
+    }
     private String generateNIM() {
         String maxNim = studentRepository.findMaxNim();
         return (maxNim == null)

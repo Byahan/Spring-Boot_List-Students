@@ -1,5 +1,7 @@
 package com.example.demo.Controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -40,5 +42,12 @@ public class StudentController {
     @PutMapping("/nim/{nim}")
     public Student updateByNim(@PathVariable String nim, @RequestBody StudentRequest request) {
         return studentService.updateByNim(nim, request);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Object> handleRuntime(RuntimeException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ex.getMessage());
     }
 }

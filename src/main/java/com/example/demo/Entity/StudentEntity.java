@@ -3,7 +3,7 @@ package com.example.demo.Entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import java.time.LocalDate;   // ← WAJIB! ini yang hilang
+import java.time.LocalDate;
 
 @Entity
 @Getter
