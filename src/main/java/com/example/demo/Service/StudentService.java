@@ -1,86 +1,79 @@
 package com.example.demo.Service;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.example.demo.Domain.Student;
 import com.example.demo.Domain.StudentRequest;
+import com.example.demo.Entity.StudentEntity;
+import com.example.demo.Repository.StudentRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class StudentService {
 
-    private List<Student> students = new ArrayList<>();
+    private final StudentRepository studentRepository;
 
-    public StudentService() {
-        // Data awal
-        students.add(new Student("231110001", "Ahmad", LocalDate.of(2003, 1, 10), "Jakarta"));
-        students.add(new Student("231110002", "Budi", LocalDate.of(2002, 5, 20), "Bandung"));
-        students.add(new Student("231110003", "Chandra", LocalDate.of(2004, 3, 15), "Surabaya"));
-    }
+    private static final int LENGTH = 5;
 
     public List<Student> getAllStudents() {
-        return students;
+        return studentRepository.findAll()
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
     }
 
-    public Student addStudent(StudentRequest studentRequest) {
-        Student newStudent = new Student(
-            studentRequest.getNim(),
-            studentRequest.getFullName(),
-            studentRequest.getDob(),
-            studentRequest.getAddress()
-        );
+    public Student addStudent(StudentRequest request) {
+        StudentEntity entity = new StudentEntity();
+        entity.setNim(generateNIM());
+        entity.setFullName(request.getFullName());
+        entity.setDob(request.getDob());
+        entity.setAddress(request.getAddress());
 
-        students.add(newStudent);
-        return newStudent;
-    }
-    
-    public void deleteStudent(String nim) {
-        Optional<Student> studentOptional = students.stream()
-            .filter(student -> student.getNim().equals(nim))
-            .findFirst();
-
-        if (studentOptional.isPresent()) {
-            Student studentToDelete = studentOptional.get();
-            students.remove(studentToDelete);
-        } else {
-            throw new RuntimeException("Student with NIM " + nim + " not found");
-        }
+        return mapToDto(studentRepository.save(entity));
     }
 
-    public Student updateStudent(String nim, Student updatedStudent) {
-    // Cari student berdasarkan NIM
-        Optional<Student> studentOptional = students.stream()
-            .filter(student -> student.getNim().equals(nim))
-            .findFirst();
-
-        if (studentOptional.isPresent()) {
-            Student existingStudent = studentOptional.get();
-
-        // Update data student
-        existingStudent.setFullName(updatedStudent.getFullName());
-        existingStudent.setAddress(updatedStudent.getAddress());
-        existingStudent.setDob(updatedStudent.getDob());
-
-        return existingStudent; // kembalikan student yang sudah diperbarui
-        } else {
-            throw new RuntimeException("Student with NIM " + nim + " not found");
-        }
+    private String generateNIM() {
+        String maxNim = studentRepository.findMaxNim();
+        return (maxNim == null)
+                ? String.format("%0" + LENGTH + "d", 1)
+                : String.format("%0" + LENGTH + "d", Integer.parseInt(maxNim) + 1);
     }
 
-    public Student findStudentByNim(String nim) {
-        Optional<Student> studentOptional = students.stream()
-            .filter(student -> student.getNim().equals(nim))
-            .findFirst();
-
-        if (studentOptional.isPresent()) {
-            return studentOptional.get();
-        } else {
-            throw new RuntimeException("Student with NIM " + nim + " not found");
-        }
+    public Student findByNim(String nim) {
+        StudentEntity entity = studentRepository.findByNim(nim)
+                .orElseThrow(() -> new RuntimeException("NIM not found"));
+        return mapToDto(entity);
     }
 
+   public void deleteByNim(String nim) {
+        StudentEntity entity = studentRepository.findByNim(nim)
+            .orElseThrow(() -> new RuntimeException("NIM not found"));
+
+        studentRepository.delete(entity);
+    }
+
+    public Student updateByNim(String nim, StudentRequest request) {
+        StudentEntity entity = studentRepository.findByNim(nim)
+                .orElseThrow(() -> new RuntimeException("NIM not found"));
+
+        entity.setFullName(request.getFullName());
+        entity.setAddress(request.getAddress());
+        entity.setDob(request.getDob());
+
+        return mapToDto(studentRepository.save(entity));
+    }
+
+    private Student mapToDto(StudentEntity entity) {
+        Student student = new Student();
+        student.setNim(entity.getNim());
+        student.setFullName(entity.getFullName());
+        student.setAddress(entity.getAddress());
+        student.setDob(entity.getDob());
+        return student;
+    }
 }

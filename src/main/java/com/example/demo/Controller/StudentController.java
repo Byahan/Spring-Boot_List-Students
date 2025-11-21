@@ -1,6 +1,5 @@
 package com.example.demo.Controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -8,58 +7,38 @@ import com.example.demo.Service.StudentService;
 import com.example.demo.Domain.Student;
 import com.example.demo.Domain.StudentRequest;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/students")
+@RequiredArgsConstructor
 public class StudentController {
 
     private final StudentService studentService;
 
-    // Konstruktor untuk dependency injection
-    @Autowired
-    public StudentController(StudentService studentService) {
-        this.studentService = studentService;
-    }
-
-    // Endpoint GET → menampilkan semua student
     @GetMapping
     public List<Student> getStudents() {
         return studentService.getAllStudents();
     }
 
-    // Endpoint POST → menambah student baru
     @PostMapping
-    public Student createStudent(@RequestBody StudentRequest studentRequest) {
-        return studentService.addStudent(studentRequest);
+    public Student createStudent(@RequestBody StudentRequest request) {
+        return studentService.addStudent(request);
     }
 
-    @DeleteMapping("/{nim}")
-    public String removeStudent(@PathVariable String nim) {
-        try {
-            studentService.deleteStudent(nim);
-            return "Successfully deleted student with NIM: " + nim;
-        } catch (Exception e) {
-            return "Error: " + e.getMessage();
-        }
+    @GetMapping("/nim/{nim}")
+    public Student getByNim(@PathVariable String nim) {
+        return studentService.findByNim(nim);
     }
 
-    @PutMapping("/{nim}")
-    public Student updateStudent(@PathVariable String nim, @RequestBody Student student) {
-        try {
-            return studentService.updateStudent(nim, student);
-        } catch (Exception e) {
-            throw new RuntimeException("Error updating student: " + e.getMessage());
-        }
+    @DeleteMapping("/nim/{nim}")
+    public String removeByNim(@PathVariable String nim) {
+        studentService.deleteByNim(nim);
+        return "Deleted student with NIM: " + nim;
     }
 
-    @GetMapping("/{nim}")
-    public Object findStudent(@PathVariable String nim) {
-        try {
-            return studentService.findStudentByNim(nim);
-        } catch (Exception e) {
-        // Jika NIM tidak ditemukan, kembalikan pesan
-            return "Student not found";
-        }
+    @PutMapping("/nim/{nim}")
+    public Student updateByNim(@PathVariable String nim, @RequestBody StudentRequest request) {
+        return studentService.updateByNim(nim, request);
     }
-
-    
 }

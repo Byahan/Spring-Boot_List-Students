@@ -8,11 +8,7 @@ public class Student {
     private LocalDate dob;
     private String address;
 
-    public Student(String nim, String fullName, LocalDate dob, String address) {
-        this.nim = nim;
-        this.fullName = fullName;
-        this.dob = dob;
-        this.address = address;
+    public Student() {
     }
 
     // Getter & Setter
